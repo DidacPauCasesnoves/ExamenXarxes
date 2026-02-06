@@ -1,53 +1,63 @@
 #!/bin/bash
 
 # ==========================================
-# 1. VARIABLES (Ajustadas a tu red 192.168.3.x)
+# 1. ZONA DE EDICION (LO MAS IMPORTANTE)
 # ==========================================
-DOMINIO_1="www.intranet.kuy.com"
-DOMINIO_2="www.sistema.kuy.org"
-IP_RED="192.168.3.0/24"
 
-ROOT_1="/var/www/appintranet"
-ROOT_2="/var/www/appsistema"
-PRIV_1="/srv/www/appintranet/privado"
+# 1. Nombres de las webs (Mira el enunciado del examen)
+DOMINIO_1="www.intranet.viralup.com"  # <--- CAMBIAR POR EL DOMINIO 1 DEL EXAMEN
+DOMINIO_2="www.sistema.viralup.com"   # <--- CAMBIAR POR EL DOMINIO 2 DEL EXAMEN
 
-# ==========================================
-# 2. INSTALACIÓN Y DIRECTORIOS
-# ==========================================
-sudo apt update && sudo apt install apache2 apache2-utils -y
-sudo a2enmod ssl cgi
-sudo mkdir -p $ROOT_1/logs $ROOT_2/logs $PRIV_1 /etc/apache2/ssl
+# 2. Tu Red (Para permitir el acceso a la zona privada)
+# Si tu IP es 10.18.51.70, tu red es 10.18.51.0/24. 
+# Si tu IP es 192.168.10.5, tu red es 192.168.10.0/24.
+IP_RED="10.18.51.0/24"                # <--- CAMBIAR POR TU RED (CUIDADO CON EL /24)
 
-# Archivos base y Error 404 exacto de la tabla
-echo "<h1>Benvinguts a Intranet</h1>" | sudo tee $ROOT_1/index.html
-echo "Error en la aplicacion web appintranet - archivo no encontrado" | sudo tee $ROOT_1/404.html
-echo "<h1>Zona Privada Confirmada</h1>" | sudo tee $PRIV_1/index.html
+# 3. Carpetas (Solo cámbialas si el profesor te pide rutas raras)
+ROOT_1="/var/www/appintranet"         # <--- CAMBIAR SI TE PIDEN OTRA CARPETA
+ROOT_2="/var/www/appsistema"          # <--- CAMBIAR SI TE PIDEN OTRA CARPETA
+PRIV_1="/srv/www/appintranet/privado" # <--- CAMBIAR SI TE PIDEN OTRA CARPETA
 
 # ==========================================
-# 3. CERTIFICADO SSL (Dominio correcto)
+# 2. INSTALACION (NO TOCAR)
 # ==========================================
-sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+echo "--- Instalando Apache y utilidades ---"
+apt update && apt install apache2 apache2-utils -y
+a2enmod ssl cgi alias auth_basic authn_file authz_user authz_core
+mkdir -p $ROOT_1/logs $ROOT_2/logs $PRIV_1 /etc/apache2/ssl
+
+echo "<h1>Web Intranet Segura (HTTPS)</h1>" > $ROOT_1/index.html
+echo "<h1>Error 404 Personalizado</h1>" > $ROOT_1/404.html
+echo "<h1>ZONA PRIVADA - Solo con contrasena</h1>" > $PRIV_1/index.html
+
+# ==========================================
+# 3. CERTIFICADO SSL (NO TOCAR EXCEPTO SI PIDEN PAIS/CIUDAD)
+# ==========================================
+echo "--- Generando certificado SSL ---"
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -keyout /etc/apache2/ssl/apache.key \
   -out /etc/apache2/ssl/apache.crt \
-  -subj "/C=ES/ST=Barcelona/L=Barcelona/O=KuyG8/CN=$DOMINIO_1"
+  -subj "/C=ES/ST=Baleares/L=Palma/O=Examen/CN=$DOMINIO_1" 
+  # SI SON MUY ESTRICTOS, CAMBIA LO DE ARRIBA: C=Pais, L=Ciudad, O=Organizacion
 
 # ==========================================
-# 4. USUARIOS (htpasswd)
+# 4. USUARIOS (MIRA LA TABLA DE USUARIOS DEL EXAMEN)
 # ==========================================
-# Crear usuarios de la tabla con password '1234'
-sudo htpasswd -bc /etc/apache2/.htpasswd_intra Usuari01 1234
-sudo htpasswd -b /etc/apache2/.htpasswd_intra Usuari02 1234
-sudo htpasswd -b /etc/apache2/.htpasswd_intra Usuari03 1234
+echo "--- Creando usuarios ---"
+# El formato es: nombre password
+htpasswd -bc /etc/apache2/.htpasswd_intra Usuari01 1234  # <--- CAMBIAR NOMBRE Y PASS
+htpasswd -b /etc/apache2/.htpasswd_intra Usuari02 1234   # <--- CAMBIAR NOMBRE Y PASS
 
 # ==========================================
-# 5. CONFIGURACIÓN VIRTUALHOSTS (Con RequireAll)
+# 5. CONFIGURACION VIRTUALHOSTS (NO TOCAR NADA A PARTIR DE AQUI)
 # ==========================================
 
-# --- Aplicación 1 (Intranet) ---
-sudo bash -c "cat <<EOF > /etc/apache2/sites-available/appintranet-ssl.conf
+# WEB 1: Intranet
+cat <<EOF > /etc/apache2/sites-available/appintranet-ssl.conf
 <VirtualHost *:443>
     ServerName $DOMINIO_1
     DocumentRoot $ROOT_1
+    
     SSLEngine on
     SSLCertificateFile /etc/apache2/ssl/apache.crt
     SSLCertificateKeyFile /etc/apache2/ssl/apache.key
@@ -58,7 +68,7 @@ sudo bash -c "cat <<EOF > /etc/apache2/sites-available/appintranet-ssl.conf
     Alias /privado $PRIV_1
     <Directory $PRIV_1>
         AuthType Basic
-        AuthName \"Acces Restringit Intranet\"
+        AuthName "Acces Restringit"
         AuthUserFile /etc/apache2/.htpasswd_intra
         <RequireAll>
             Require valid-user
@@ -66,10 +76,10 @@ sudo bash -c "cat <<EOF > /etc/apache2/sites-available/appintranet-ssl.conf
         </RequireAll>
     </Directory>
 </VirtualHost>
-EOF"
+EOF
 
-# --- Aplicación 2 (Sistema) ---
-sudo bash -c "cat <<EOF > /etc/apache2/sites-available/appsistema-ssl.conf
+# WEB 2: Sistema
+cat <<EOF > /etc/apache2/sites-available/appsistema-ssl.conf
 <VirtualHost *:443>
     ServerName $DOMINIO_2
     DocumentRoot $ROOT_2
@@ -83,13 +93,16 @@ sudo bash -c "cat <<EOF > /etc/apache2/sites-available/appsistema-ssl.conf
         Require all granted
     </Directory>
 </VirtualHost>
-EOF"
+EOF
 
 # ==========================================
-# 6. PERMISOS Y ACTIVACIÓN
+# 6. ACTIVAR Y REINICIAR (NO TOCAR)
 # ==========================================
-sudo chown -R www-data:www-data /var/www/ /srv/www/
-sudo a2ensite appintranet-ssl.conf appsistema-ssl.conf
-sudo systemctl restart apache2
+chown -R www-data:www-data /var/www/ /srv/www/
+a2dissite 000-default
+a2ensite appintranet-ssl.conf appsistema-ssl.conf
+systemctl restart apache2
 
-echo "✅ Script corregido y ejecutado. Prueba ahora en el navegador."
+echo "--- INSTALACION COMPLETADA ---"
+echo "IMPORTANTE: En el CLIENTE anade esto a /etc/hosts:"
+echo "IP_DEL_SERVIDOR  $DOMINIO_1 $DOMINIO_2"
