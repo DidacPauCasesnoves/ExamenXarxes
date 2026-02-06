@@ -1,0 +1,20 @@
+$TTL 604800
+@   IN  SOA ns1.xarxadmin.granalmacen.org. admin.granalmacen.org. (
+        2025120201
+        3600
+        1800
+        604800
+        86400 )
+
+; Servidores DNS de la zona inversa
+@   IN NS ns1.xarxadmin.granalmacen.org.
+@   IN NS ns2.xarxadmin.granalmacen.org.
+
+; PTR para 192.168.144.x
+150 IN PTR ns1.xarxadmin.granalmacen.org.
+151 IN PTR ns2.xarxadmin.granalmacen.org.
+152 IN PTR pc01.xarxadmin.granalmacen.org.
+153 IN PTR pc02.xarxadmin.granalmacen.org.
+154 IN PTR pc03.xarxadmin.granalmacen.org.
+155 IN PTR pc04.xarxadmin.granalmacen.org.
+156 IN PTR pc05.xarxadmin.granalmacen.org.

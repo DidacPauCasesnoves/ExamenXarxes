@@ -1,0 +1,31 @@
+$TTL 604800
+@   IN  SOA ns1.granalmacen.org. admin.granalmacen.org. (
+        2025120201 ; Serial
+        3600       ; Refresh
+        1800       ; Retry
+        604800     ; Expire
+        86400 )    ; Negative Cache TTL
+
+; Servidores DNS
+@   IN  NS  ns1.granalmacen.org.
+@   IN  NS  ns2.granalmacen.org.
+
+; Servidores de correo
+@   IN  MX 10 mail01.granalmacen.org.
+@   IN  MX 20 mail02.granalmacen.org.
+
+; Registros A
+ns1     IN  A 192.168.144.134
+ns2     IN  A 192.168.144.135
+mail01  IN  A 192.168.144.135
+mail02  IN  A 192.168.144.135
+web     IN  A 192.168.144.135
+file    IN  A 192.168.144.135
+
+; Alias
+www     IN  CNAME web.granalmacen.org.
+ftp     IN  CNAME file.granalmacen.org.
+
+; Delegación
+atenciocliente IN NS ns1.atenciocliente.granalmacen.org.
+atenciocliente IN NS ns2.atenciocliente.granalmacen.org.

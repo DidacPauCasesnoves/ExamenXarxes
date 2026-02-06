@@ -1,0 +1,20 @@
+$TTL 604800
+@   IN  SOA ns1.xarxadmin.granalmacen.org. admin.granalmacen.org. (
+        2025120201
+        3600
+        1800
+        604800
+        86400 )
+
+; Servidores DNS de la subzona
+@   IN  NS ns1.xarxadmin.granalmacen.org.
+@   IN  NS ns2.xarxadmin.granalmacen.org.
+
+; Registros A de la subzona
+ns1   IN A 192.168.144.150
+ns2   IN A 192.168.144.151
+pc01  IN A 192.168.144.152
+pc02  IN A 192.168.144.153
+pc03  IN A 192.168.144.154
+pc04  IN A 192.168.144.155
+pc05  IN A 192.168.144.156

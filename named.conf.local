@@ -1,0 +1,30 @@
+// Incluir la clave
+include "/etc/bind/update-key.key";
+
+// Zona directa
+zone "granalmacen.org" {
+    type master;
+    file "/var/lib/bind/db.granalmacen.org"; 
+    allow-update { key "update-key"; };       //  PERMITE ACTUALIZAR
+    allow-transfer { 192.168.144.134; };      // esclavo
+};
+
+// Zona inversa
+zone "144.168.192.in-addr.arpa" {
+    type master;
+    file "/var/lib/bind/db.inversa";          
+    allow-update { key "update-key"; };       // PERMITE ACTUALIZAR
+};
+
+// Zona esclava (del otro dominio, no se toca para DDNS)
+zone "granalmacen.com" {
+    type slave;
+    masters { 192.168.144.134; };
+    file "/var/lib/bind/db.granalmacen.com";
+};
+
+// Subzona (No se toca si no usa DHCP propio)
+zone "xarxadmin.granalmacen.org" {
+    type master;
+    file "/etc/bind/db.xarxaadmin.granalmacen.org";
+};
